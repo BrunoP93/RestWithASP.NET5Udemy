@@ -1,5 +1,5 @@
-﻿using APIAspNetCore5.Model;
-using APIAspNetCore5.Services;
+﻿using APIAspNetCore5.Business;
+using APIAspNetCore5.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIAspNetCore5.Controllers
@@ -13,62 +13,64 @@ namespace APIAspNetCore5.Controllers
     [ApiVersion("1")]
     [ApiController]
     [Route("api/[controller]/v{version:apiVersion}")]
-    public class PersonsController : ControllerBase
+    public class PersonController : ControllerBase
     {
         //Declaração do serviço usado
-        private IPersonService _personService;
+        private IPersonBusiness _personBusiness;
 
         /* Injeção de uma instancia de IPersonService ao criar
         uma instancia de PersonController */
-        public PersonsController(IPersonService personService)
+        public PersonController(IPersonBusiness personBusiness)
         {
-            _personService = personService;
+            _personBusiness = personBusiness;
         }
 
-        //Mapeia as requisições GET para http://localhost:{porta}/api/person/
+        //Mapeia as requisições GET para http://localhost:{porta}/api/persons/v1/
         //Get sem parâmetros para o FindAll --> Busca Todos
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_personService.FindAll());
+            return Ok(_personBusiness.FindAll());
         }
 
-        //Mapeia as requisições GET para http://localhost:{porta}/api/person/{id}
+        //Mapeia as requisições GET para http://localhost:{porta}/api/persons/v1/{id}
         //recebendo um ID como no Path da requisição
         //Get com parâmetros para o FindById --> Busca Por ID
         [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
-            var person = _personService.FindById(id);
+            var person = _personBusiness.FindById(id);
             if (person == null) return NotFound();
             return Ok(person);
         }
 
-        //Mapeia as requisições POST para http://localhost:{porta}/api/person/
+        //Mapeia as requisições POST para http://localhost:{porta}/api/persons/v1/
         //O [FromBody] consome o Objeto JSON enviado no corpo da requisição
         [HttpPost]
         public IActionResult Post([FromBody] Person person)
         {
             if (person == null) return BadRequest();
-            return new ObjectResult(_personService.Create(person));
+            return new ObjectResult(_personBusiness.Create(person));
         }
 
-        //Mapeia as requisições PUT para http://localhost:{porta}/api/person/
+        //Mapeia as requisições PUT para http://localhost:{porta}/api/persons/v1/
         //O [FromBody] consome o Objeto JSON enviado no corpo da requisição
         [HttpPut]
         public IActionResult Put([FromBody] Person person)
         {
             if (person == null) return BadRequest();
-            return new ObjectResult(_personService.Update(person));
+            var updatedPerson = _personBusiness.Update(person);
+            if (updatedPerson == null) return BadRequest();
+            return new ObjectResult(updatedPerson);
         }
 
 
-        //Mapeia as requisições DELETE para http://localhost:{porta}/api/person/{id}
+        //Mapeia as requisições DELETE para http://localhost:{porta}/api/persons/v1/{id}
         //recebendo um ID como no Path da requisição
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            _personService.Delete(id);
+            _personBusiness.Delete(id);
             return NoContent();
         }
     }
